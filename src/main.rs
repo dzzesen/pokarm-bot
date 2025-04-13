@@ -1,6 +1,7 @@
 use teloxide::{
     dispatching::{UpdateHandler, dialogue, dialogue::InMemStorage},
     prelude::*,
+    types::{InlineKeyboardButton, InlineKeyboardMarkup},
     utils::command::BotCommands,
 };
 
@@ -84,7 +85,12 @@ async fn handle_add_recipe_cmd(bot: Bot, dialogue: MyDialogue, msg: Message) -> 
 }
 
 async fn handle_all_recipes_cmd(bot: Bot, msg: Message) -> HandlerResult {
-    bot.send_message(msg.chat.id, "/all_recipes command is on development =)")
+    let keyboard = InlineKeyboardMarkup::new(
+        [("Recipe 1", 1), ("Recipe 2", 2), ("Recipe 3", 3)]
+            .map(|(recipe, id)| [InlineKeyboardButton::callback(recipe, id.to_string())]),
+    );
+    bot.send_message(msg.chat.id, "List of your recipes:")
+        .reply_markup(keyboard)
         .await?;
     Ok(())
 }
