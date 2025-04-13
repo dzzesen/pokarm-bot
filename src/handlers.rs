@@ -1,4 +1,10 @@
-use crate::dispatcher::{Command, State};
+use crate::{
+    DbPool,
+    dispatcher::{Command, State},
+    models::*,
+    schema::*,
+};
+use diesel::{RunQueryDsl, SelectableHelper};
 use teloxide::{
     dispatching::dialogue::InMemStorage,
     prelude::*,
@@ -91,15 +97,30 @@ pub async fn handle_recipe_msg(
     dialogue: MyDialogue,
     (name, description): (String, String),
     msg: Message,
+    db_pool: DbPool,
 ) -> HandlerResult {
+    let mut conn = db_pool.get().expect("Failed to get DB connection.");
+
     match msg.text().map(ToOwned::to_owned) {
         Some(recipe) => {
             bot.send_message(
                 msg.chat.id,
-                format!("Ok, the name of a new recipe is\n{name},\n\nAnd the description of a new recipe is\n{description}\n\nThe new recipe is\n{recipe}\n\nUnfortunatelly, this feature is on development =)"),
+                format!("Ok, the name of a new recipe is\n{name},\n\nAnd the description of a new recipe is\n{description}\n\nThe new recipe is\n{recipe}"),
             )
             .await?;
+
             dialogue.update(State::default()).await?;
+
+            let new_recipe = NewRecipe {
+                name: &name,
+                description: &description,
+                text: &recipe,
+            };
+            diesel::insert_into(recipes::table)
+                .values(&new_recipe)
+                .returning(Recipe::as_returning())
+                .get_result(&mut conn)
+                .expect("Error saving new recipe.");
         }
         None => {
             bot.send_message(msg.chat.id, "Please send me a new recipe.")
