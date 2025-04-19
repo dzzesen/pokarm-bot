@@ -1,3 +1,0 @@
-CREATE TABLE users (
-    id BIGINT PRIMARY KEY NOT NULL
-);

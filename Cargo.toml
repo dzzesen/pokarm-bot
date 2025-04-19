@@ -4,7 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-diesel = { version = "2.2.9", features = ["postgres", "r2d2"] }
 dotenvy = "0.15.7"
 teloxide = { version = "0.15.0", features = ["full"] }
 tokio = { version = "1.44.2", features = ["macros"] }
