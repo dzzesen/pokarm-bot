@@ -40,18 +40,24 @@ pub fn get_schema() -> UpdateHandler<Box<dyn std::error::Error + Send + Sync + '
     use dptree::case;
 
     let command_handler = teloxide::filter_command::<Command, _>()
-        .branch(case![Command::Help].endpoint(handle_help_cmd))
-        .branch(case![Command::AddRecipe].endpoint(handle_add_recipe_cmd))
-        .branch(case![Command::AllRecipes].endpoint(handle_all_recipes_cmd))
-        .branch(case![Command::FindRecipe].endpoint(handle_find_recipe_cmd));
+        .branch(case![Command::Help].endpoint(commands::handle_help))
+        .branch(case![Command::AddRecipe].endpoint(commands::handle_add_recipe))
+        .branch(case![Command::AllRecipes].endpoint(commands::handle_all_recipes))
+        .branch(case![Command::FindRecipe].endpoint(commands::handle_find_recipe));
 
     let message_handler = Update::filter_message()
         .branch(command_handler)
-        .branch(case![State::RecieveName].endpoint(handle_name_msg))
-        .branch(case![State::RecieveDescription { name }].endpoint(handle_description_msg))
-        .branch(case![State::RecieveRecipe { name, description }].endpoint(handle_recipe_msg))
-        .branch(case![State::RecieveSearchQuery].endpoint(handle_search_query_msg))
-        .branch(dptree::endpoint(handle_invalid_msg));
+        .branch(case![State::RecieveName].endpoint(create_recipe::handle_name))
+        .branch(
+            case![State::RecieveDescription { name }]
+                .endpoint(create_recipe::handle_description),
+        )
+        .branch(
+            case![State::RecieveRecipe { name, description }]
+                .endpoint(create_recipe::handle_recipe),
+        )
+        .branch(case![State::RecieveSearchQuery].endpoint(handle_search_query))
+        .branch(dptree::endpoint(handle_invalid));
 
     dialogue::enter::<Update, InMemStorage<State>, State, _>().branch(message_handler)
 }
