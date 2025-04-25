@@ -3,7 +3,7 @@ pub mod dispatcher;
 pub mod handlers;
 pub mod models;
 
-use sea_orm::{Database, DatabaseConnection};
+use sea_orm::{ConnectOptions, Database, DatabaseConnection};
 use teloxide::{dispatching::dialogue::InMemStorage, prelude::*};
 
 #[tokio::main]
@@ -13,7 +13,9 @@ async fn main() {
     let bot = Bot::from_env();
 
     let db_url = std::env::var("DATABASE_URL").unwrap();
-    let db: DatabaseConnection = Database::connect(db_url)
+    let mut db_opt = ConnectOptions::new(db_url);
+    db_opt.max_connections(20);
+    let db: DatabaseConnection = Database::connect(db_opt)
         .await
         .expect("Database connection failed");
 
